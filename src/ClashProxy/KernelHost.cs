@@ -92,6 +92,8 @@ public sealed class KernelHost
     {
         try
         {
+            if (SystemProxy.IsApplied) SystemProxy.Disable();
+            Settings.SystemProxyOn = false;
             Save();
         }
         catch
@@ -102,33 +104,68 @@ public sealed class KernelHost
         Kernel.Stop();
     }
 
-    /// <summary>用当前设置重建配置并写入磁盘。</summary>
-    public async Task<string> BuildConfigAsync()
+    /// <summary>打开/关闭系统代理（指向规则通道）。</summary>
+    public bool ApplySystemProxy(bool on)
     {
-        var url = Settings.SubscriptionUrl?.Trim() ?? "";
-        if (string.IsNullOrEmpty(url))
+        if (on)
         {
-            throw new InvalidOperationException("请先填写订阅链接");
+            var ok = SystemProxy.Enable(Settings.RulePort);
+            AppendLog(ok
+                ? $"[系统代理] 已开启，指向 127.0.0.1:{Settings.RulePort}（列表内网站走代理，其余直连）"
+                : "[错误] 开启系统代理失败，可能被安全软件拦截");
+            return ok;
         }
 
-        AppendLog("[订阅] 正在下载…");
-        var yaml = await SubscriptionService.DownloadAsync(url).ConfigureAwait(false);
+        SystemProxy.Disable();
+        AppendLog("[系统代理] 已关闭，系统恢复原状");
+        return true;
+    }
 
-        // 留一份原始订阅，便于日后离线重建
-        AppPaths.Ensure();
-        await System.IO.File.WriteAllTextAsync(AppPaths.CurrentProfile, yaml).ConfigureAwait(false);
+    /// <summary>
+    /// 用当前设置重建配置并写入磁盘。
+    /// forceDownload=false 时优先复用本地订阅缓存（profiles\current.yaml），
+    /// 这样改规则、改端口不会因为网络波动而失败。
+    /// </summary>
+    public async Task<string> BuildConfigAsync(bool forceDownload = false)
+    {
+        var url = Settings.SubscriptionUrl?.Trim() ?? "";
+        string yaml;
+
+        var hasCache = System.IO.File.Exists(AppPaths.CurrentProfile);
+
+        if (!forceDownload && hasCache)
+        {
+            yaml = await System.IO.File.ReadAllTextAsync(AppPaths.CurrentProfile).ConfigureAwait(false);
+            AppendLog("[订阅] 使用本地缓存重建配置");
+        }
+        else
+        {
+            if (string.IsNullOrEmpty(url))
+            {
+                throw new InvalidOperationException("请先在「订阅与节点」里填写订阅链接");
+            }
+
+            AppendLog("[订阅] 正在下载…");
+            yaml = await SubscriptionService.DownloadAsync(url).ConfigureAwait(false);
+
+            AppPaths.Ensure();
+            await System.IO.File.WriteAllTextAsync(AppPaths.CurrentProfile, yaml).ConfigureAwait(false);
+        }
 
         var built = ConfigBuilder.Build(yaml, Settings);
         await System.IO.File.WriteAllTextAsync(AppPaths.ConfigFile, built).ConfigureAwait(false);
 
-        var nodes = SubscriptionService.ParseNodes(yaml);
-        AppendLog($"[订阅] 下载完成，共 {nodes.Count} 个节点");
-
-        if (!string.IsNullOrEmpty(Settings.SelectedNode) &&
-            !nodes.Any(n => n.Name == Settings.SelectedNode))
+        if (forceDownload || !hasCache)
         {
-            AppendLog($"[订阅] 原选节点「{Settings.SelectedNode}」已不存在，将重新选择");
-            Settings.SelectedNode = "";
+            var nodes = SubscriptionService.ParseNodes(yaml);
+            AppendLog($"[订阅] 下载完成，共 {nodes.Count} 个节点");
+
+            if (!string.IsNullOrEmpty(Settings.SelectedNode) &&
+                !nodes.Any(n => n.Name == Settings.SelectedNode))
+            {
+                AppendLog($"[订阅] 原选节点「{Settings.SelectedNode}」已不存在，将重新选择");
+                Settings.SelectedNode = "";
+            }
         }
 
         return yaml;

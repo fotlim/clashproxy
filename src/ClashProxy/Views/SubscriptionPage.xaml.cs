@@ -97,7 +97,7 @@ public sealed partial class SubscriptionPage : Page
         SubStatus.Text = "正在生成内核配置…";
         try
         {
-            await App.Host.BuildConfigAsync();
+            await App.Host.BuildConfigAsync(forceDownload: true);
             App.Host.Save();
             SubStatus.Text = "配置已生成。回到「总览」启动内核即可生效。";
 
@@ -113,8 +113,13 @@ public sealed partial class SubscriptionPage : Page
         }
         catch (Exception ex)
         {
-            SubStatus.Text = $"生成配置失败：{ex.Message}";
-            App.Host.AppendLog($"[错误] 生成配置失败：{ex.Message}");
+            var detail = $"{ex.GetType().Name}: {ex.Message}";
+            SubStatus.Text = $"生成配置失败：{detail}（详情见「运行日志」）";
+            App.Host.AppendLog($"[错误] 生成配置失败：{detail}");
+            if (!string.IsNullOrWhiteSpace(ex.StackTrace))
+            {
+                App.Host.AppendLog(ex.StackTrace);
+            }
         }
         finally
         {

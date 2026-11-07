@@ -29,7 +29,7 @@
                         <TextBlock Text="二、让指定网站走代理" FontSize="15" FontWeight="SemiBold" />
                         <TextBlock FontSize="13" TextWrapping="Wrap" LineHeight="22"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                   Text="到「分流规则」添加域名（如 google.com），点「保存并应用」。&#x0a;之后凡是能把代理指向 127.0.0.1:7890 的程序，访问这些域名时会走代理，访问其它域名仍然直连。&#x0a;规则类型：域名后缀最常用（google.com 同时覆盖 www.google.com）；精确域名只匹配那一个；关键字按子串匹配。" />
+                                   Text="到「分流规则」添加域名（如 google.com），点「保存并应用」。&#x0a;之后凡是能把代理指向 127.0.0.1:7890 的程序，访问这些域名时会走代理，访问其它域名仍然直连。&#x0a;用浏览器上网：回「总览」把「系统代理（给浏览器用）」打开，浏览器就会自动走 7890，只有规则里的网站走代理；关掉开关或退出程序都会还原你原来的系统代理设置。&#x0a;规则类型：域名后缀最常用（google.com 同时覆盖 www.google.com）；精确域名只匹配那一个；关键字按子串匹配。" />
                     </StackPanel>
 
                     <StackPanel Spacing="6">
@@ -57,7 +57,7 @@
                         <TextBlock Text="六、常见问题" FontSize="15" FontWeight="SemiBold" />
                         <TextBlock FontSize="13" TextWrapping="Wrap" LineHeight="22"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                   Text="· 启动后打不开网页：先看「运行日志」，多半是节点不通，换个节点试试。&#x0a;· 改了规则或换了订阅：点「保存并应用」/「应用到内核」会自动重启内核，等它自己转一圈就好。&#x0a;· 程序必须重启才认代理：环境变量只在新进程启动时读取，已经在跑的程序要先关掉。&#x0a;· 不想用了：点「停止」，或者直接关掉 ClashProxy，系统网络立即恢复直连，不会留下任何系统代理设置。" />
+                                   Text="· 启动内核后浏览器还是打不开网站：浏览器不读环境变量，要去「总览」把「系统代理（给浏览器用）」打开；同时看「运行日志」里的节点是否可达，不行就换个节点。&#x0a;· 改了规则或换了订阅：点「保存并应用」/「应用到内核」会自动重启内核，等它自己转一圈就好。&#x0a;· 程序必须重启才认代理：环境变量只在新进程启动时读取，已经在跑的程序要先关掉。&#x0a;· 不想用了：点「停止」，或者直接关掉 ClashProxy，系统网络立即恢复直连，系统代理设置也会还原成你自己的。" />
                     </StackPanel>
 
                     <StackPanel Spacing="6">

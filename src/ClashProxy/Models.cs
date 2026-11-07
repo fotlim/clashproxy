@@ -86,6 +86,8 @@ public sealed class AppSettings
     public string TestUrl { get; set; } = "https://www.gstatic.com/generate_204";
     public bool TunMode { get; set; } = false;
     public bool StartOnLaunch { get; set; } = false;
+    /// <summary>是否让 Windows 系统代理指向规则通道（7890），默认关闭。</summary>
+    public bool SystemProxyOn { get; set; } = false;
     public ObservableCollection<SiteRule> Sites { get; set; } = new();
     public ObservableCollection<AppEntry> Apps { get; set; } = new();
 }

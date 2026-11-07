@@ -139,6 +139,7 @@ public sealed partial class RulesPage : Page
         App.Host.Save();
         try
         {
+            App.Host.AppendLog($"[规则] 正在生成配置（{App.Host.Settings.Sites.Count} 条规则）…");
             await App.Host.BuildConfigAsync();
             if (App.Host.Kernel.IsRunning)
             {
@@ -146,7 +147,7 @@ public sealed partial class RulesPage : Page
                 var ok = await App.Host.RestartKernelAsync();
                 HintText.Text = ok
                     ? "已保存并重启内核，新规则立即生效。"
-                    : "已保存，但重启内核失败，请到「运行日志」查看原因。";
+                    : "规则已保存，但重启内核失败，请到「运行日志」查看原因。";
                 (App.MainWindow as MainWindow)?.RefreshChrome();
             }
             else
@@ -156,7 +157,13 @@ public sealed partial class RulesPage : Page
         }
         catch (Exception ex)
         {
-            HintText.Text = $"保存了规则，但生成配置失败：{ex.Message}";
+            var detail = $"{ex.GetType().Name}: {ex.Message}";
+            App.Host.AppendLog($"[错误] 生成配置失败：{detail}");
+            if (!string.IsNullOrWhiteSpace(ex.StackTrace))
+            {
+                App.Host.AppendLog(ex.StackTrace);
+            }
+            HintText.Text = $"规则已保存到设置里，但生成配置失败：{detail}（完整信息见「运行日志」）";
         }
     }
 }

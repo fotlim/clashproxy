@@ -4,6 +4,7 @@ obj/
 dist/
 release/
 testdata/
+testdata-fix/
 
 # 内核二进制（体积大，由 tools\fetch-kernel.ps1 下载，不进仓库）
 src/ClashProxy/Assets/bin/mihomo.exe

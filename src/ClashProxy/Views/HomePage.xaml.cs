@@ -10,6 +10,8 @@ namespace ClashProxy.Views;
 
 public sealed partial class HomePage : Page
 {
+    private bool _suppressToggle;
+
     public HomePage()
     {
         InitializeComponent();
@@ -34,7 +36,41 @@ public sealed partial class HomePage : Page
             ? $"内核 PID {App.Host.Kernel.ProcessId}，代理端口已在监听。"
             : "点击右侧按钮启动内核，启动后即可让应用走代理。";
 
+        _suppressToggle = true;
+        SysProxyToggle.IsOn = Core.SystemProxy.IsApplied;
+        SysProxyToggle.IsEnabled = running || Core.SystemProxy.IsApplied;
+        _suppressToggle = false;
+
         (App.MainWindow as MainWindow)?.RefreshChrome();
+    }
+
+    private void SysProxyToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (_suppressToggle) return;
+
+        if (SysProxyToggle.IsOn)
+        {
+            if (!App.Host.Kernel.IsRunning)
+            {
+                _suppressToggle = true;
+                SysProxyToggle.IsOn = false;
+                _suppressToggle = false;
+                ResultText.Text = "请先启动内核，再开启系统代理。";
+                return;
+            }
+
+            var ok = App.Host.ApplySystemProxy(true);
+            ResultText.Text = ok
+                ? "系统代理已开启：浏览器现在就能访问分流规则里的网站，其余网站依然直连。"
+                : $"开启系统代理失败：{(string.IsNullOrEmpty(Core.SystemProxy.LastError) ? "可能被安全软件拦截" : Core.SystemProxy.LastError)}";
+        }
+        else
+        {
+            App.Host.ApplySystemProxy(false);
+            ResultText.Text = "系统代理已关闭，已还原成你原来的设置。";
+        }
+
+        Refresh();
     }
 
     private async void StartBtn_Click(object sender, RoutedEventArgs e)
@@ -71,6 +107,7 @@ public sealed partial class HomePage : Page
 
     private void StopBtn_Click(object sender, RoutedEventArgs e)
     {
+        App.Host.ApplySystemProxy(false);
         App.Host.Kernel.Stop();
         ResultText.Text = "通道已停止，系统网络保持直连。";
         Refresh();

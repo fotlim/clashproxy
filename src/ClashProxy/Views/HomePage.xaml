@@ -98,6 +98,26 @@
                 </Grid>
             </Border>
 
+            <!-- 系统代理 -->
+            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1" CornerRadius="10" Padding="20">
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="系统代理（给浏览器用）" FontSize="15" FontWeight="SemiBold" />
+                        <TextBlock FontSize="12" TextWrapping="Wrap"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   Text="开启后把 Windows 系统代理指向规则通道：只有分流规则里的网站走代理，其余网站仍然直连。关闭或退出程序会还原你原来的设置。" />
+                    </StackPanel>
+                    <ToggleSwitch x:Name="SysProxyToggle" Grid.Column="1" VerticalAlignment="Center"
+                                  OnContent="开" OffContent="关" Toggled="SysProxyToggle_Toggled" />
+                </Grid>
+            </Border>
+
             <TextBlock x:Name="ResultText" FontSize="12" TextWrapping="Wrap"
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
         </StackPanel>
